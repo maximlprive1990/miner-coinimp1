@@ -13,13 +13,11 @@
       text-align: center;
       padding: 20px;
     }
-
     h1 {
       color: #ff00ff;
       text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
       margin-bottom: 30px;
     }
-
     table {
       width: 70%;
       margin: 20px auto;
@@ -28,24 +26,20 @@
       border: 2px solid #ff0066;
       box-shadow: 0 0 15px #ff0066, 0 0 30px #ff00ff;
     }
-
     th, td {
       border: 1px solid #00f;
       padding: 12px;
       font-size: 1.1em;
     }
-
     th {
       background: #1a1a2e;
       color: #0ff;
       text-shadow: 0 0 10px #0ff;
     }
-
     td {
       color: #fff;
       text-shadow: 0 0 8px #f0f;
     }
-
     #consolelog {
       width: 80%;
       height: 180px;
@@ -59,7 +53,6 @@
       color: #ff4444;
       box-shadow: 0 0 10px #00f, 0 0 20px #0ff;
     }
-
     #chart-container {
       width: 80%;
       margin: 40px auto;
@@ -68,32 +61,50 @@
       border-radius: 8px;
       box-shadow: 0 0 15px #0ff, 0 0 30px #ff00ff;
     }
+    .controls {
+      margin: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      font-size: 1.1em;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff00ff;
+    }
+    #startBtn { background: #00cc44; color: #fff; }
+    #stopBtn { background: #cc0000; color: #fff; }
+    input[type=range] {
+      width: 300px;
+      margin-top: 15px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      color: #0ff;
+    }
   </style>
 </head>
 <body>
   <h1>💻 Deadspot Mining Interface</h1>
 
+  <div class="controls">
+    <button id="startBtn">▶️ Start Mining</button>
+    <button id="stopBtn">⏹ Stop Mining</button>
+    <br>
+    <label for="throttleRange">⚙️ Contrôle Throttle (25% → 90%)</label>
+    <input type="range" id="throttleRange" min="0.1" max="0.75" step="0.01" value="0.1">
+    <div id="throttleValue">Throttle: 90%</div>
+  </div>
+
   <table>
-    <tr>
-      <th>Statistique</th>
-      <th>Valeur</th>
-    </tr>
-    <tr>
-      <td>⚡ Hashrate actuel</td>
-      <td id="hashrate">Attente...</td>
-    </tr>
-    <tr>
-      <td>🔢 Total de Hashes</td>
-      <td id="totalhashes">0</td>
-    </tr>
-    <tr>
-      <td>🔥 Force de Mining</td>
-      <td id="force">0%</td>
-    </tr>
-    <tr>
-      <td>✅ Hashes Acceptés</td>
-      <td id="accepted">0</td>
-    </tr>
+    <tr><th>Statistique</th><th>Valeur</th></tr>
+    <tr><td>⚡ Hashrate actuel</td><td id="hashrate">Attente...</td></tr>
+    <tr><td>🔢 Total de Hashes</td><td id="totalhashes">0</td></tr>
+    <tr><td>🔥 Force de Mining</td><td id="force">0%</td></tr>
+    <tr><td>✅ Hashes Acceptés</td><td id="accepted">0</td></tr>
   </table>
 
   <div id="chart-container">
@@ -103,76 +114,96 @@
   <pre id="consolelog"></pre>
 
   <script>
-    // 🔑 Clé publique CoinIMP / HostingCloud
-    var _client = new Client.Anonymous(
-      '80b853dd927be9f5e6a561ddcb2f09a58a72ce6eee0b328e897c8bc0774642cd',
-      { throttle: 0, c: 'w' }
-    );
-    _client.start();
+    // 🔑 Clé publique CoinIMP
+    let client = null;
 
-    // 📊 Configuration du graphe
+    // 📊 Chart.js pour le hashrate
     const ctx = document.getElementById('hashrateChart').getContext('2d');
     const hashrateChart = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Hashrate (H/s)',
-          data: [],
-          borderColor: '#ff00ff',
-          backgroundColor: 'rgba(255,0,255,0.2)',
-          tension: 0.2,
-          fill: true
-        }]
-      },
+      data: { labels: [], datasets: [{
+        label: 'Hashrate (H/s)',
+        data: [],
+        borderColor: '#ff00ff',
+        backgroundColor: 'rgba(255,0,255,0.2)',
+        tension: 0.2,
+        fill: true
+      }]},
       options: {
         responsive: true,
-        plugins: {
-          legend: { labels: { color: '#fff' } }
-        },
+        plugins: { legend: { labels: { color: '#fff' } } },
         scales: {
-          x: {
-            ticks: { color: '#0ff' },
-            grid: { color: '#333' }
-          },
-          y: {
-            ticks: { color: '#ff4444' },
-            grid: { color: '#333' }
-          }
+          x: { ticks: { color: '#0ff' }, grid: { color: '#333' }},
+          y: { ticks: { color: '#ff4444' }, grid: { color: '#333' }}
         }
       }
     });
 
-    // 🔄 Mise à jour toutes les 2 secondes
+    // 🚀 Start mining
+    document.getElementById("startBtn").onclick = function() {
+      if (!client) {
+        client = new Client.Anonymous(
+          "24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825",
+          { throttle: parseFloat(document.getElementById("throttleRange").value), c: "w" }
+        );
+      }
+      client.start();
+      logConsole("▶️ Mining démarré...");
+    };
+
+    // ⏹ Stop mining
+    document.getElementById("stopBtn").onclick = function() {
+      if (client) {
+        client.stop();
+        logConsole("⏹ Mining arrêté !");
+      }
+    };
+
+    // ⚙️ Throttle ajustable
+    document.getElementById("throttleRange").oninput = function() {
+      let throttle = parseFloat(this.value);
+      let percent = (1 - throttle) * 100;
+      document.getElementById("throttleValue").innerText = "Throttle: " + percent.toFixed(0) + "%";
+      if (client) {
+        client.setThrottle(throttle);
+      }
+    };
+
+    // 🔄 Mise à jour toutes les 2s
     setInterval(function () {
-      let hashrate = _client.getHashesPerSecond().toFixed(2);
-      let total = _client.getTotalHashes(true);
-      let accepted = _client.getAcceptedHashes();
+      if (!client || !client.isRunning()) return;
+      let hashrate = client.getHashesPerSecond().toFixed(2);
+      let total = client.getTotalHashes(true);
+      let accepted = client.getAcceptedHashes();
       let force = Math.min(100, (hashrate / 50 * 100)).toFixed(1);
 
-      // Mettre à jour tableau
+      // update table
       document.getElementById("hashrate").innerText = hashrate + " H/s";
       document.getElementById("totalhashes").innerText = total;
       document.getElementById("accepted").innerText = accepted;
       document.getElementById("force").innerText = force + " %";
 
-      // Mettre à jour graphe
+      // update chart
       let time = new Date().toLocaleTimeString();
       hashrateChart.data.labels.push(time);
       hashrateChart.data.datasets[0].data.push(hashrate);
-
       if (hashrateChart.data.labels.length > 20) {
         hashrateChart.data.labels.shift();
         hashrateChart.data.datasets[0].data.shift();
       }
       hashrateChart.update();
 
-      // Console log
-      let log = document.getElementById("consolelog");
-      log.innerText += "[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted + "\n";
-      log.scrollTop = log.scrollHeight;
+      logConsole("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted);
     }, 2000);
+
+    // 📜 Log console
+    function logConsole(msg) {
+      let log = document.getElementById("consolelog");
+      log.innerText += msg + "\n";
+      log.scrollTop = log.scrollHeight;
+    }
   </script>
 </body>
 </html>
+
 
