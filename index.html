@@ -18,6 +18,19 @@
       text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
       margin-bottom: 30px;
     }
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      background: #ff0066;
+      color: #fff;
+      box-shadow: 0 0 10px #ff0066, 0 0 20px #ff00ff;
+      transition: transform 0.2s;
+    }
+    button:hover { transform: scale(1.1); }
     table {
       width: 70%;
       margin: 20px auto;
@@ -61,129 +74,130 @@
       border-radius: 8px;
       box-shadow: 0 0 15px #0ff, 0 0 30px #ff00ff;
     }
-    .controls {
-      margin: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      font-size: 1.1em;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 0 10px #ff00ff;
-    }
-    #startBtn { background: #00cc44; color: #fff; }
-    #stopBtn { background: #cc0000; color: #fff; }
-    input[type=range] {
-      width: 300px;
-      margin-top: 15px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
+    #throttle-control {
+      margin-top: 20px;
       color: #0ff;
+      font-size: 1.1em;
+    }
+    input[type="range"] {
+      width: 300px;
     }
   </style>
 </head>
 <body>
   <h1>💻 Deadspot Mining Interface</h1>
 
-  <div class="controls">
+  <!-- Boutons de contrôle -->
+  <div>
     <button id="startBtn">▶️ Start Mining</button>
     <button id="stopBtn">⏹ Stop Mining</button>
-    <br>
-    <label for="throttleRange">⚙️ Contrôle Throttle (25% → 90%)</label>
-    <input type="range" id="throttleRange" min="0.1" max="0.75" step="0.01" value="0.1">
-    <div id="throttleValue">Throttle: 90%</div>
   </div>
 
+  <!-- Slider throttle -->
+  <div id="throttle-control">
+    <label for="throttle">⚙️ Throttle (25% - 90%) : </label>
+    <input type="range" id="throttle" min="0.1" max="0.75" step="0.01" value="0.1">
+    <span id="throttleValue">90%</span>
+  </div>
+
+  <!-- Tableau stats -->
   <table>
     <tr><th>Statistique</th><th>Valeur</th></tr>
-    <tr><td>⚡ Hashrate actuel</td><td id="hashrate">Attente...</td></tr>
+    <tr><td>⚡ Hashrate actuel</td><td id="hashrate">0 H/s</td></tr>
     <tr><td>🔢 Total de Hashes</td><td id="totalhashes">0</td></tr>
     <tr><td>🔥 Force de Mining</td><td id="force">0%</td></tr>
     <tr><td>✅ Hashes Acceptés</td><td id="accepted">0</td></tr>
   </table>
 
+  <!-- Graphique -->
   <div id="chart-container">
     <canvas id="hashrateChart"></canvas>
   </div>
 
+  <!-- Console log -->
   <pre id="consolelog"></pre>
 
   <script>
-    // 🔑 Clé publique CoinIMP
-    let client = null;
+    // 🔑 Initialisation du client (clé API CoinIMP)
+    var _client = new Client.Anonymous(
+      '24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825',
+      { throttle: 0.1, c: 'w' }
+    );
 
-    // 📊 Chart.js pour le hashrate
+    // Ajout notification CoinIMP
+    _client.addMiningNotification(
+      "Bottom",
+      "This site is running JavaScript miner from coinimp.com.",
+      "#850b8e",
+      20,
+      "#11b642"
+    );
+
+    // Boutons
+    document.getElementById("startBtn").onclick = () => {
+      _client.start();
+      log("[INFO] ▶️ Mining démarré");
+    };
+    document.getElementById("stopBtn").onclick = () => {
+      _client.stop();
+      log("[INFO] ⏹ Mining arrêté");
+    };
+
+    // Throttle (slider)
+    const throttleSlider = document.getElementById("throttle");
+    const throttleValue = document.getElementById("throttleValue");
+    throttleSlider.oninput = function () {
+      _client.setThrottle(parseFloat(this.value));
+      let percent = Math.round((1 - this.value) * 100);
+      throttleValue.textContent = percent + "%";
+      log("[CTRL] ⚙️ Throttle réglé à " + percent + "%");
+    };
+
+    // 📊 Graphique Hashrate
     const ctx = document.getElementById('hashrateChart').getContext('2d');
     const hashrateChart = new Chart(ctx, {
       type: 'line',
-      data: { labels: [], datasets: [{
-        label: 'Hashrate (H/s)',
-        data: [],
-        borderColor: '#ff00ff',
-        backgroundColor: 'rgba(255,0,255,0.2)',
-        tension: 0.2,
-        fill: true
-      }]},
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Hashrate (H/s)',
+          data: [],
+          borderColor: '#ff00ff',
+          backgroundColor: 'rgba(255,0,255,0.2)',
+          tension: 0.2,
+          fill: true
+        }]
+      },
       options: {
         responsive: true,
         plugins: { legend: { labels: { color: '#fff' } } },
         scales: {
-          x: { ticks: { color: '#0ff' }, grid: { color: '#333' }},
-          y: { ticks: { color: '#ff4444' }, grid: { color: '#333' }}
+          x: { ticks: { color: '#0ff' }, grid: { color: '#333' } },
+          y: { ticks: { color: '#ff4444' }, grid: { color: '#333' } }
         }
       }
     });
 
-    // 🚀 Start mining
-    document.getElementById("startBtn").onclick = function() {
-      if (!client) {
-        client = new Client.Anonymous(
-          "24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825",
-          { throttle: parseFloat(document.getElementById("throttleRange").value), c: "w" }
-        );
-      }
-      client.start();
-      logConsole("▶️ Mining démarré...");
-    };
+    // Console log helper
+    function log(msg) {
+      let logBox = document.getElementById("consolelog");
+      logBox.innerText += msg + "\n";
+      logBox.scrollTop = logBox.scrollHeight;
+    }
 
-    // ⏹ Stop mining
-    document.getElementById("stopBtn").onclick = function() {
-      if (client) {
-        client.stop();
-        logConsole("⏹ Mining arrêté !");
-      }
-    };
-
-    // ⚙️ Throttle ajustable
-    document.getElementById("throttleRange").oninput = function() {
-      let throttle = parseFloat(this.value);
-      let percent = (1 - throttle) * 100;
-      document.getElementById("throttleValue").innerText = "Throttle: " + percent.toFixed(0) + "%";
-      if (client) {
-        client.setThrottle(throttle);
-      }
-    };
-
-    // 🔄 Mise à jour toutes les 2s
-    setInterval(function () {
-      if (!client || !client.isRunning()) return;
-      let hashrate = client.getHashesPerSecond().toFixed(2);
-      let total = client.getTotalHashes(true);
-      let accepted = client.getAcceptedHashes();
+    // 🔄 Update stats
+    setInterval(() => {
+      let hashrate = _client.getHashesPerSecond().toFixed(2);
+      let total = _client.getTotalHashes(true);
+      let accepted = _client.getAcceptedHashes();
       let force = Math.min(100, (hashrate / 50 * 100)).toFixed(1);
 
-      // update table
       document.getElementById("hashrate").innerText = hashrate + " H/s";
       document.getElementById("totalhashes").innerText = total;
       document.getElementById("accepted").innerText = accepted;
       document.getElementById("force").innerText = force + " %";
 
-      // update chart
+      // Graphe
       let time = new Date().toLocaleTimeString();
       hashrateChart.data.labels.push(time);
       hashrateChart.data.datasets[0].data.push(hashrate);
@@ -193,43 +207,13 @@
       }
       hashrateChart.update();
 
-      logConsole("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted);
+      log("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted);
     }, 2000);
-
-    // 📜 Log console
-    function logConsole(msg) {
-      let log = document.getElementById("consolelog");
-      log.innerText += msg + "\n";
-      log.scrollTop = log.scrollHeight;
-    }
-    <script src="https://www.hostingcloud.racing/EC1j.js"></script>
-<script>
-    // Création du client, mais ne pas start tout de suite
-    var _client = new Client.Anonymous('4f1be9d79238434f2ba6f18444e62a32dd8de96b3ec588b064fdd29cc6dd1f32', {
-        throttle: 0.4, c: 'w'
-    });
-
-    // Ajouter la notification (optionnelle)
-    _client.addMiningNotification(
-        "Bottom",
-        "This site is running JavaScript miner from coinimp.com. If it bothers you, you can stop it.",
-        "#850b8e",
-        20,
-        "#11b642"
-    );
-
-    // Start uniquement via bouton
-    document.getElementById("startBtn").onclick = function() {
-        _client.start();
-    };
-    document.getElementById("stopBtn").onclick = function() {
-        _client.stop();
-    };
-</script>
-
   </script>
 </body>
 </html>
+
+
 
 
 
