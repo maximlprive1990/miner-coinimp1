@@ -62,7 +62,11 @@ input[type="range"] { width:300px; }
 
 <script>
 // Initialisation client CoinIMP
-var _client = new Client.Anonymous('24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825', { throttle: 0.1, c: 'w' });
+var _client = new Client.Anonymous('TA_VRAIE_SITE_KEY_COINIMP', {
+    throttle: 0.1,
+    c: 'w'
+});
+
 _client.addMiningNotification("Bottom","This site is running JavaScript miner from coinimp.com.","#850b8e",20,"#11b642");
 
 // Start / Stop buttons
@@ -129,6 +133,7 @@ setInterval(()=>{
 </script>
 </body>
 </html>
+
 
 
 
