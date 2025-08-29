@@ -32,7 +32,7 @@
     }
     button:hover { transform: scale(1.1); }
     table {
-      width: 70%;
+      width: 75%;
       margin: 20px auto;
       border-collapse: collapse;
       background: rgba(20,20,30,0.9);
@@ -105,8 +105,9 @@
     <tr><th>Statistique</th><th>Valeur</th></tr>
     <tr><td>⚡ Hashrate actuel</td><td id="hashrate">0 H/s</td></tr>
     <tr><td>🔢 Total de Hashes</td><td id="totalhashes">0</td></tr>
-    <tr><td>🔥 Force de Mining</td><td id="force">0%</td></tr>
+    <tr><td>🔥 Force de Mining actuelle</td><td id="force">0%</td></tr>
     <tr><td>✅ Hashes Acceptés</td><td id="accepted">0</td></tr>
+    <tr><td>💎 Force de Mining Future</td><td id="futureForce">0 H/s</td></tr>
   </table>
 
   <!-- Graphique -->
@@ -118,13 +119,13 @@
   <pre id="consolelog"></pre>
 
   <script>
-    // 🔑 Initialisation du client (clé API CoinIMP)
+    // 🔑 Initialisation client CoinIMP
     var _client = new Client.Anonymous(
       '24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825',
       { throttle: 0.1, c: 'w' }
     );
 
-    // Ajout notification CoinIMP
+    // Notification
     _client.addMiningNotification(
       "Bottom",
       "This site is running JavaScript miner from coinimp.com.",
@@ -143,7 +144,7 @@
       log("[INFO] ⏹ Mining arrêté");
     };
 
-    // Throttle (slider)
+    // Throttle slider
     const throttleSlider = document.getElementById("throttle");
     const throttleValue = document.getElementById("throttleValue");
     throttleSlider.oninput = function () {
@@ -157,17 +158,14 @@
     const ctx = document.getElementById('hashrateChart').getContext('2d');
     const hashrateChart = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Hashrate (H/s)',
-          data: [],
-          borderColor: '#ff00ff',
-          backgroundColor: 'rgba(255,0,255,0.2)',
-          tension: 0.2,
-          fill: true
-        }]
-      },
+      data: { labels: [], datasets: [{
+        label: 'Hashrate (H/s)',
+        data: [],
+        borderColor: '#ff00ff',
+        backgroundColor: 'rgba(255,0,255,0.2)',
+        tension: 0.2,
+        fill: true
+      }]},
       options: {
         responsive: true,
         plugins: { legend: { labels: { color: '#fff' } } },
@@ -185,7 +183,7 @@
       logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // 🔄 Update stats
+    // 🔄 Update stats toutes les 2s
     setInterval(() => {
       let hashrate = _client.getHashesPerSecond().toFixed(2);
       let total = _client.getTotalHashes(true);
@@ -197,7 +195,11 @@
       document.getElementById("accepted").innerText = accepted;
       document.getElementById("force").innerText = force + " %";
 
-      // Graphe
+      // Calcul Force future
+      const futureForce = Math.floor(total / 1000000000);
+      document.getElementById("futureForce").innerText = futureForce + " H/s (coming soon)";
+
+      // Graphique
       let time = new Date().toLocaleTimeString();
       hashrateChart.data.labels.push(time);
       hashrateChart.data.datasets[0].data.push(hashrate);
@@ -207,11 +209,13 @@
       }
       hashrateChart.update();
 
-      log("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted);
+      log("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted + " | 💎 FutureForce: " + futureForce + " H/s");
     }, 2000);
   </script>
 </body>
 </html>
+
+
 
 
 
