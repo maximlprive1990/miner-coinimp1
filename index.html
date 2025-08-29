@@ -1,219 +1,135 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>🚀 Deadspot Miner Interface</title>
-  <script src="https://www.hostingcloud.racing/EC1j.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      background: #0a0a0f;
-      color: #fff;
-      font-family: monospace;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      color: #ff00ff;
-      text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
-      margin-bottom: 30px;
-    }
-    button {
-      padding: 12px 25px;
-      margin: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      cursor: pointer;
-      background: #ff0066;
-      color: #fff;
-      box-shadow: 0 0 10px #ff0066, 0 0 20px #ff00ff;
-      transition: transform 0.2s;
-    }
-    button:hover { transform: scale(1.1); }
-    table {
-      width: 75%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: rgba(20,20,30,0.9);
-      border: 2px solid #ff0066;
-      box-shadow: 0 0 15px #ff0066, 0 0 30px #ff00ff;
-    }
-    th, td {
-      border: 1px solid #00f;
-      padding: 12px;
-      font-size: 1.1em;
-    }
-    th {
-      background: #1a1a2e;
-      color: #0ff;
-      text-shadow: 0 0 10px #0ff;
-    }
-    td {
-      color: #fff;
-      text-shadow: 0 0 8px #f0f;
-    }
-    #consolelog {
-      width: 80%;
-      height: 180px;
-      margin: 30px auto;
-      padding: 10px;
-      background: #111;
-      border: 2px solid #00f;
-      overflow-y: auto;
-      text-align: left;
-      font-size: 0.9em;
-      color: #ff4444;
-      box-shadow: 0 0 10px #00f, 0 0 20px #0ff;
-    }
-    #chart-container {
-      width: 80%;
-      margin: 40px auto;
-      background: #111;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 15px #0ff, 0 0 30px #ff00ff;
-    }
-    #throttle-control {
-      margin-top: 20px;
-      color: #0ff;
-      font-size: 1.1em;
-    }
-    input[type="range"] {
-      width: 300px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>🚀 Deadspot Miner Interface</title>
+<script src="https://www.hostingcloud.racing/EC1j.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { background: #0a0a0f; color: #fff; font-family: monospace; text-align: center; padding: 20px; }
+h1 { color: #ff00ff; text-shadow:0 0 10px #ff00ff,0 0 20px #ff00ff; margin-bottom:30px; }
+button { padding:12px 25px; margin:10px; border:none; border-radius:6px; font-size:1em; cursor:pointer; background:#ff0066; color:#fff; box-shadow:0 0 10px #ff0066,0 0 20px #ff00ff; transition: transform 0.2s;}
+button:hover{transform:scale(1.1);}
+table { width:75%; margin:20px auto; border-collapse:collapse; background: rgba(20,20,30,0.9); border:2px solid #ff0066; box-shadow:0 0 15px #ff0066,0 0 30px #ff00ff; }
+th, td { border:1px solid #00f; padding:12px; font-size:1.1em; }
+th { background:#1a1a2e; color:#0ff; text-shadow:0 0 10px #0ff; }
+td { color:#fff; text-shadow:0 0 8px #f0f; }
+#consolelog { width:80%; height:180px; margin:30px auto; padding:10px; background:#111; border:2px solid #00f; overflow-y:auto; text-align:left; font-size:0.9em; color:#ff4444; box-shadow:0 0 10px #00f,0 0 20px #0ff; }
+#chart-container { width:80%; margin:40px auto; background:#111; padding:15px; border-radius:8px; box-shadow:0 0 15px #0ff,0 0 30px #ff00ff; }
+#throttle-control { margin-top:20px; color:#0ff; font-size:1.1em; }
+input[type="range"] { width:300px; }
+</style>
 </head>
 <body>
-  <h1>💻 Deadspot Mining Interface</h1>
 
-  <!-- Boutons de contrôle -->
-  <div>
-    <button id="startBtn">▶️ Start Mining</button>
-    <button id="stopBtn">⏹ Stop Mining</button>
-  </div>
+<h1>💻 Deadspot Mining Interface</h1>
 
-  <!-- Slider throttle -->
-  <div id="throttle-control">
-    <label for="throttle">⚙️ Throttle (25% - 90%) : </label>
-    <input type="range" id="throttle" min="0.1" max="0.75" step="0.01" value="0.1">
-    <span id="throttleValue">90%</span>
-  </div>
+<!-- Boutons Start / Stop -->
+<div>
+  <button id="startBtn">▶️ Start Mining</button>
+  <button id="stopBtn">⏹ Stop Mining</button>
+</div>
 
-  <!-- Tableau stats -->
-  <table>
-    <tr><th>Statistique</th><th>Valeur</th></tr>
-    <tr><td>⚡ Hashrate actuel</td><td id="hashrate">0 H/s</td></tr>
-    <tr><td>🔢 Total de Hashes</td><td id="totalhashes">0</td></tr>
-    <tr><td>🔥 Force de Mining actuelle</td><td id="force">0%</td></tr>
-    <tr><td>✅ Hashes Acceptés</td><td id="accepted">0</td></tr>
-    <tr><td>💎 Force de Mining Future</td><td id="futureForce">0 H/s</td></tr>
-  </table>
+<!-- Slider throttle -->
+<div id="throttle-control">
+  <label for="throttle">⚙️ Throttle (25% - 90%) :</label>
+  <input type="range" id="throttle" min="0.1" max="0.75" step="0.01" value="0.1">
+  <span id="throttleValue">90%</span>
+</div>
 
-  <!-- Graphique -->
-  <div id="chart-container">
-    <canvas id="hashrateChart"></canvas>
-  </div>
+<!-- Tableau stats -->
+<table>
+<tr><th>Statistique</th><th>Valeur</th></tr>
+<tr><td>⚡ Hashrate actuel</td><td id="hashrate">0 H/s</td></tr>
+<tr><td>🔢 Total de Hashes</td><td id="totalhashes">0</td></tr>
+<tr><td>🔥 Force de Mining actuelle</td><td id="force">0%</td></tr>
+<tr><td>✅ Hashes Acceptés</td><td id="accepted">0</td></tr>
+<tr><td>💎 Pool Mining</td><td id="poolMining">0 H/s</td></tr>
+</table>
 
-  <!-- Console log -->
-  <pre id="consolelog"></pre>
+<!-- Bouton échange hash → H/s -->
+<div>
+  <button id="exchangeBtn">💰 Convertir 1 000 000 000 Hash → 1 H/s Pool Mining</button>
+</div>
 
-  <script>
-    // 🔑 Initialisation client CoinIMP
-    var _client = new Client.Anonymous(
-      '24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825',
-      { throttle: 0.1, c: 'w' }
-    );
+<!-- Graphique -->
+<div id="chart-container">
+  <canvas id="hashrateChart"></canvas>
+</div>
 
-    // Notification
-    _client.addMiningNotification(
-      "Bottom",
-      "This site is running JavaScript miner from coinimp.com.",
-      "#850b8e",
-      20,
-      "#11b642"
-    );
+<!-- Console log -->
+<pre id="consolelog"></pre>
 
-    // Boutons
-    document.getElementById("startBtn").onclick = () => {
-      _client.start();
-      log("[INFO] ▶️ Mining démarré");
-    };
-    document.getElementById("stopBtn").onclick = () => {
-      _client.stop();
-      log("[INFO] ⏹ Mining arrêté");
-    };
+<script>
+// Initialisation client CoinIMP
+var _client = new Client.Anonymous('24b28c3ad1a7b76126a71d8d41eb21ab367bc077752551441fc1fe21178d1825', { throttle: 0.1, c: 'w' });
+_client.addMiningNotification("Bottom","This site is running JavaScript miner from coinimp.com.","#850b8e",20,"#11b642");
 
-    // Throttle slider
-    const throttleSlider = document.getElementById("throttle");
-    const throttleValue = document.getElementById("throttleValue");
-    throttleSlider.oninput = function () {
-      _client.setThrottle(parseFloat(this.value));
-      let percent = Math.round((1 - this.value) * 100);
-      throttleValue.textContent = percent + "%";
-      log("[CTRL] ⚙️ Throttle réglé à " + percent + "%");
-    };
+// Start / Stop buttons
+document.getElementById("startBtn").onclick = () => { _client.start(); log("[INFO] ▶️ Mining démarré"); };
+document.getElementById("stopBtn").onclick = () => { _client.stop(); log("[INFO] ⏹ Mining arrêté"); };
 
-    // 📊 Graphique Hashrate
-    const ctx = document.getElementById('hashrateChart').getContext('2d');
-    const hashrateChart = new Chart(ctx, {
-      type: 'line',
-      data: { labels: [], datasets: [{
-        label: 'Hashrate (H/s)',
-        data: [],
-        borderColor: '#ff00ff',
-        backgroundColor: 'rgba(255,0,255,0.2)',
-        tension: 0.2,
-        fill: true
-      }]},
-      options: {
-        responsive: true,
-        plugins: { legend: { labels: { color: '#fff' } } },
-        scales: {
-          x: { ticks: { color: '#0ff' }, grid: { color: '#333' } },
-          y: { ticks: { color: '#ff4444' }, grid: { color: '#333' } }
-        }
-      }
-    });
+// Throttle slider
+const throttleSlider = document.getElementById("throttle");
+const throttleValue = document.getElementById("throttleValue");
+throttleSlider.oninput = function() {
+  _client.setThrottle(parseFloat(this.value));
+  let percent = Math.round((1 - this.value)*100);
+  throttleValue.textContent = percent + "%";
+  log("[CTRL] ⚙️ Throttle réglé à " + percent + "%");
+};
 
-    // Console log helper
-    function log(msg) {
-      let logBox = document.getElementById("consolelog");
-      logBox.innerText += msg + "\n";
-      logBox.scrollTop = logBox.scrollHeight;
-    }
+// Pool Mining bonus
+let poolMining = 0;
 
-    // 🔄 Update stats toutes les 2s
-    setInterval(() => {
-      let hashrate = _client.getHashesPerSecond().toFixed(2);
-      let total = _client.getTotalHashes(true);
-      let accepted = _client.getAcceptedHashes();
-      let force = Math.min(100, (hashrate / 50 * 100)).toFixed(1);
+// Bouton échange hash → H/s
+document.getElementById("exchangeBtn").onclick = function() {
+  let totalHashes = _client.getTotalHashes(true);
+  if(totalHashes >= 1000000000){
+    poolMining += 1;
+    totalHashes -= 1000000000;
+    // on force le reset du compteur du client pour simuler deduction (CoinIMP ne permet pas vraiment)
+    // mais pour affichage live on fait comme ça
+    document.getElementById("poolMining").innerText = poolMining + " H/s (Pool Mining)";
+    log("[EXCHANGE] 💰 1 000 000 000 Hash convertis en 1 H/s Pool Mining");
+  } else {
+    log("[EXCHANGE] ❌ Pas assez de Hash pour convertir");
+  }
+};
 
-      document.getElementById("hashrate").innerText = hashrate + " H/s";
-      document.getElementById("totalhashes").innerText = total;
-      document.getElementById("accepted").innerText = accepted;
-      document.getElementById("force").innerText = force + " %";
+// Graphique Hashrate
+const ctx = document.getElementById('hashrateChart').getContext('2d');
+const hashrateChart = new Chart(ctx, { type:'line', data:{ labels:[], datasets:[{label:'Hashrate (H/s)', data:[], borderColor:'#ff00ff', backgroundColor:'rgba(255,0,255,0.2)', tension:0.2, fill:true }] }, options:{ responsive:true, plugins:{legend:{labels:{color:'#fff'}}}, scales:{ x:{ticks:{color:'#0ff'}, grid:{color:'#333'}}, y:{ticks:{color:'#ff4444'}, grid:{color:'#333'}} } } });
 
-      // Calcul Force future
-      const futureForce = Math.floor(total / 1000000000);
-      document.getElementById("futureForce").innerText = futureForce + " H/s (coming soon)";
+// Console log helper
+function log(msg){ let logBox = document.getElementById("consolelog"); logBox.innerText += msg + "\n"; logBox.scrollTop = logBox.scrollHeight; }
 
-      // Graphique
-      let time = new Date().toLocaleTimeString();
-      hashrateChart.data.labels.push(time);
-      hashrateChart.data.datasets[0].data.push(hashrate);
-      if (hashrateChart.data.labels.length > 20) {
-        hashrateChart.data.labels.shift();
-        hashrateChart.data.datasets[0].data.shift();
-      }
-      hashrateChart.update();
+// Update stats toutes les 2s
+setInterval(()=>{
+  let hashrate = _client.getHashesPerSecond().toFixed(2);
+  let total = _client.getTotalHashes(true);
+  let accepted = _client.getAcceptedHashes();
+  let force = Math.min(100,(hashrate/50*100)).toFixed(1);
 
-      log("[STAT] ⚡ " + hashrate + " H/s | 🔢 " + total + " | ✅ " + accepted + " | 💎 FutureForce: " + futureForce + " H/s");
-    }, 2000);
-  </script>
+  document.getElementById("hashrate").innerText = hashrate + " H/s";
+  document.getElementById("totalhashes").innerText = total;
+  document.getElementById("accepted").innerText = accepted;
+  document.getElementById("force").innerText = force + " %";
+  document.getElementById("poolMining").innerText = poolMining + " H/s (Pool Mining)";
+
+  let time = new Date().toLocaleTimeString();
+  hashrateChart.data.labels.push(time);
+  hashrateChart.data.datasets[0].data.push(hashrate);
+  if(hashrateChart.data.labels.length>20){ hashRateChart.data.labels.shift(); hashrateChart.data.datasets[0].data.shift(); }
+  hashrateChart.update();
+
+  log("[STAT] ⚡ "+hashrate+" H/s | 🔢 "+total+" | ✅ "+accepted+" | 💎 Pool Mining: "+poolMining+" H/s");
+},2000);
+
+</script>
 </body>
 </html>
+
 
 
 
